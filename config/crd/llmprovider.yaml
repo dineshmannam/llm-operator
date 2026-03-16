@@ -78,6 +78,9 @@ spec:
                 - path
                 - timeoutSeconds
                 type: object
+              model:
+                description: 'Default model identifier for this provider. Format is provider-specific: - OpenRouter: `"openai/gpt-4o-mini"`, `"anthropic/claude-3-5-sonnet"` - Ollama:     `"llama3"`, `"mistral"`, `"phi3"` - OpenAI:     `"gpt-4o"`, `"gpt-4o-mini"` Written to the target ConfigMap as `MODEL_NAME` for the app to consume.'
+                type: string
               rateLimit:
                 description: Maximum requests per minute this provider can handle. The routing engine avoids providers that are at capacity.
                 format: uint32
@@ -93,6 +96,7 @@ spec:
             required:
             - costPerToken
             - endpoint
+            - model
             type: object
           status:
             description: Observed state of an LLMProvider, written by the provider controller.
@@ -145,4 +149,3 @@ spec:
     storage: true
     subresources:
       status: {}
-

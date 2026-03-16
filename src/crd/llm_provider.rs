@@ -64,6 +64,14 @@ pub struct LLMProviderSpec {
     /// Base URL of the inference API (e.g. `https://openrouter.ai/api/v1`).
     pub endpoint: String,
 
+    /// Default model identifier for this provider.
+    /// Format is provider-specific:
+    ///   - OpenRouter: `"openai/gpt-4o-mini"`, `"anthropic/claude-3-5-sonnet"`
+    ///   - Ollama:     `"llama3"`, `"mistral"`, `"phi3"`
+    ///   - OpenAI:     `"gpt-4o"`, `"gpt-4o-mini"`
+    /// Written to the target ConfigMap as `MODEL_NAME` for the app to consume.
+    pub model: String,
+
     /// Reference to a Kubernetes Secret containing the API key.
     /// Omit for unauthenticated providers (e.g. local Ollama).
     pub auth_secret_ref: Option<SecretRef>,

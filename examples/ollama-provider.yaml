@@ -22,6 +22,7 @@ metadata:
     provider.llm.platform.io/training-opt-out: "true"
 spec:
   endpoint: "http://ollama:11434/v1"   # OpenAI-compatible mode (Ollama ≥0.1.24)
+  model: "llama3"
   # No authSecretRef — Ollama has no auth by default
   costPerToken: 0.0                    # self-hosted; only infra cost applies
   rateLimit: 50                        # conservative; single GPU, 4-bit quant

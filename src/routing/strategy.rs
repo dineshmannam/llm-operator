@@ -95,6 +95,7 @@ mod tests {
             },
             spec: LLMProviderSpec {
                 endpoint: format!("https://{name}.example.com"),
+                model: "gpt-4o-mini".into(),
                 auth_secret_ref: None,
                 cost_per_token: cost,
                 rate_limit: None,
@@ -174,6 +175,7 @@ mod tests {
             },
             spec: LLMProviderSpec {
                 endpoint: "https://r.example.com".into(),
+                model: "gpt-4o-mini".into(),
                 auth_secret_ref: None,
                 cost_per_token: 0.0,
                 rate_limit: None,
