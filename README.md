@@ -51,6 +51,15 @@ Built as a portfolio piece demonstrating: operator patterns, cost-aware distribu
 | Admission webhook for budget | Enforces cost policy at admission time, before pods are scheduled |
 | Distroless final image | Smallest possible attack surface; no shell in prod |
 
+## Consuming the Operator (App Integration)
+
+The operator exposes a stable interface via Kubernetes primitives — no SDK, no direct dependency on the operator binary. See **[interface-contract.md](./interface-contract.md)** for:
+
+- Exactly what the operator writes to the ConfigMap
+- How the app resolves the auth secret reference
+- Contract guarantees (what the operator promises)
+- Known tradeoffs vs. a full proxy-in-the-path architecture
+
 ## Quick Start
 
 ```bash
@@ -76,7 +85,7 @@ kubectl get llmproviders,llmworkloads -A
 
 | Weekend | Focus | Status |
 |---|---|---|
-| 1 | CRD structs + provider health controller | [ ] planned |
+| 1 | CRD structs + provider health controller | [x] done |
 | 2 | Workload reconciler + admission webhook | [ ] planned |
 | 3 | Helm chart + CI + README polish | [ ] planned |
 
