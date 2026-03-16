@@ -86,7 +86,7 @@ kubectl get llmproviders,llmworkloads -A
 | Weekend | Focus | Status |
 |---|---|---|
 | 1 | CRD structs + provider health controller | [x] done |
-| 2 | Workload reconciler + admission webhook | [ ] planned |
+| 2 | Workload reconciler + admission webhook | [x] done |
 | 3 | Helm chart + CI + README polish | [ ] planned |
 
 ## License
