@@ -1,0 +1,65 @@
+# Default values for llm-operator Helm chart.
+# Override with: helm install llm-operator . -f my-values.yaml
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/dineshmannam/llm-operator
+  pullPolicy: IfNotPresent
+  tag: ""  # defaults to Chart.appVersion
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  name: llm-operator
+  annotations: {}
+
+# Operator configuration
+operator:
+  # Maximum allowed budgetPerHour across all LLMWorkloads (USD)
+  # The admission webhook rejects workloads that exceed this cluster-wide cap.
+  maxBudgetPerHour: 100.00
+  # Log level: trace | debug | info | warn | error
+  logLevel: info
+  # Log format: json (prod) | pretty (dev)
+  logFormat: json
+  # Leader election: enable for multi-replica HA (only 1 replica reconciles at a time)
+  leaderElection: true
+
+metrics:
+  enabled: true
+  port: 8080
+  path: /metrics
+  serviceMonitor:
+    # Set to true if Prometheus Operator (kube-prometheus-stack) is installed
+    enabled: false
+    interval: 30s
+
+webhook:
+  enabled: true
+  port: 8443
+  # cert-manager integration — set to true if cert-manager is installed
+  certManager:
+    enabled: false
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+  # Manual TLS — mount your own certs into this secret
+  tlsSecretName: llm-operator-webhook-tls
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Namespace where the operator is deployed
+# CRDs are cluster-scoped; the operator pod lives here
+namespace: llm-operator-system

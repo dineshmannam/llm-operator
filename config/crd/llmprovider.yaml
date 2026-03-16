@@ -1,0 +1,148 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: llmproviders.llm.platform.io
+spec:
+  group: llm.platform.io
+  names:
+    categories: []
+    kind: LLMProvider
+    plural: llmproviders
+    shortNames:
+    - llmp
+    singular: llmprovider
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.ready
+      name: Ready
+      type: string
+    - jsonPath: .spec.endpoint
+      name: Endpoint
+      type: string
+    - jsonPath: .spec.costPerToken
+      name: Cost/1KTok
+      type: number
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Auto-generated derived type for LLMProviderSpec via `CustomResource`
+        properties:
+          spec:
+            description: Desired state of an LLMProvider.
+            properties:
+              authSecretRef:
+                description: Reference to a Kubernetes Secret containing the API key. Omit for unauthenticated providers (e.g. local Ollama).
+                nullable: true
+                properties:
+                  key:
+                    description: Key within the Secret's `data` map.
+                    type: string
+                  name:
+                    description: Name of the Secret in the same namespace (or operator namespace for cluster-scoped providers).
+                    type: string
+                required:
+                - key
+                - name
+                type: object
+              costPerToken:
+                description: Cost in USD per 1,000 tokens (blended prompt + completion estimate). Used by the CostAware routing strategy to pick the cheapest ready provider.
+                format: double
+                type: number
+              endpoint:
+                description: Base URL of the inference API (e.g. `https://openrouter.ai/api/v1`).
+                type: string
+              healthCheck:
+                description: HTTP health probe configuration.
+                nullable: true
+                properties:
+                  intervalSeconds:
+                    description: How often to probe, in seconds.
+                    format: uint32
+                    minimum: 0.0
+                    type: integer
+                  path:
+                    description: HTTP path to GET (e.g. `/api/v1/models`). Must return 2xx for the probe to pass.
+                    type: string
+                  timeoutSeconds:
+                    description: Probe timeout in seconds. If the provider doesn't respond within this window the probe is counted as failed.
+                    format: uint32
+                    minimum: 0.0
+                    type: integer
+                required:
+                - intervalSeconds
+                - path
+                - timeoutSeconds
+                type: object
+              rateLimit:
+                description: Maximum requests per minute this provider can handle. The routing engine avoids providers that are at capacity.
+                format: uint32
+                minimum: 0.0
+                nullable: true
+                type: integer
+              tags:
+                additionalProperties:
+                  type: string
+                description: 'Arbitrary key/value labels for routing affinity (e.g. `tier: primary`, `region: us-east-1`).'
+                nullable: true
+                type: object
+            required:
+            - costPerToken
+            - endpoint
+            type: object
+          status:
+            description: Observed state of an LLMProvider, written by the provider controller.
+            nullable: true
+            properties:
+              conditions:
+                description: Standard Kubernetes condition list.
+                items:
+                  description: Lightweight Condition entry (mirrors `meta/v1 Condition`). Defined here because `k8s_openapi` types don't implement `JsonSchema`.
+                  properties:
+                    lastTransitionTime:
+                      description: RFC3339 timestamp of the last transition.
+                      type: string
+                    message:
+                      description: Human-readable description.
+                      type: string
+                    reason:
+                      description: Short machine-readable reason token (PascalCase).
+                      type: string
+                    status:
+                      description: '"True", "False", or "Unknown"'
+                      type: string
+                    type:
+                      description: e.g. "Ready", "Degraded"
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                nullable: true
+                type: array
+              lastProbeTime:
+                description: RFC3339 timestamp of the most recent health probe attempt.
+                nullable: true
+                type: string
+              ready:
+                description: True when the most recent health probe succeeded.
+                type: boolean
+            required:
+            - ready
+            type: object
+        required:
+        - spec
+        title: LLMProvider
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+

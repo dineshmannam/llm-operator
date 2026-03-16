@@ -1,0 +1,34 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# Generated CRD schemas (generated at build time)
+/config/crd/generated/
+
+# Kubernetes secrets / TLS certs (never commit)
+*.pem
+*.key
+*.crt
+tls.yaml
+
+# Local environment / dev overrides
+.env
+.env.local
+override.yaml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS junk
+.DS_Store
+
+# Helm chart dependencies and lock
+helm/llm-operator/charts/
+helm/llm-operator/Chart.lock
+
+# Test output
+/tests/output/
+coverage/

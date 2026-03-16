@@ -1,0 +1,154 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: llmworkloads.llm.platform.io
+spec:
+  group: llm.platform.io
+  names:
+    categories: []
+    kind: LLMWorkload
+    plural: llmworkloads
+    shortNames:
+    - llmw
+    singular: llmworkload
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.routingStrategy
+      name: Strategy
+      type: string
+    - jsonPath: .status.activeProvider
+      name: ActiveProvider
+      type: string
+    - jsonPath: .status.tokensBudgetUsed
+      name: BudgetUsed
+      type: number
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Auto-generated derived type for LLMWorkloadSpec via `CustomResource`
+        properties:
+          spec:
+            description: Desired state of an LLMWorkload.
+            properties:
+              budgetPerHour:
+                description: Maximum spend in USD per rolling hour window. The admission webhook rejects workloads that set this above the operator's cluster-wide `maxBudgetPerHour` flag.
+                format: double
+                type: number
+              compliance:
+                description: Compliance filtering constraints.
+                nullable: true
+                properties:
+                  dataResidency:
+                    description: 'If set, only providers labeled `provider.llm.platform.io/region: <value>` matching this prefix are eligible (e.g. `"us"` matches `us-east-1`).'
+                    nullable: true
+                    type: string
+                  noTrainingData:
+                    description: 'If true, only providers labeled `provider.llm.platform.io/training-opt-out: "true"` are eligible. The admission webhook enforces this at admission time.'
+                    nullable: true
+                    type: boolean
+                type: object
+              providerSelector:
+                description: Selects the pool of LLMProviders this workload may route to.
+                properties:
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Label selector — all LLMProviders matching these labels are candidates.
+                    nullable: true
+                    type: object
+                  names:
+                    description: Explicit list of LLMProvider names (cluster-scoped, so no namespace).
+                    items:
+                      type: string
+                    nullable: true
+                    type: array
+                type: object
+              routingStrategy:
+                description: Which algorithm to use when selecting among candidate providers.
+                enum:
+                - CostAware
+                - LatencyFirst
+                - RoundRobin
+                - Failover
+                type: string
+              scaleOnQueueDepth:
+                description: 'Optional: emit a scale-out annotation when a queue-depth metric exceeds a threshold.'
+                nullable: true
+                properties:
+                  metricName:
+                    description: Prometheus metric name to watch (must be available in the cluster's metrics pipeline).
+                    type: string
+                  threshold:
+                    description: Value above which the scale-out annotation is written.
+                    format: uint32
+                    minimum: 0.0
+                    type: integer
+                required:
+                - metricName
+                - threshold
+                type: object
+              targetConfigMap:
+                description: 'Name of the ConfigMap (in the same namespace) that the workload reconciler writes the resolved provider endpoint into. Key written: `PROVIDER_ENDPOINT`.'
+                type: string
+            required:
+            - budgetPerHour
+            - providerSelector
+            - routingStrategy
+            - targetConfigMap
+            type: object
+          status:
+            description: Observed state of an LLMWorkload, written by the workload controller.
+            nullable: true
+            properties:
+              activeProvider:
+                description: Name of the currently active LLMProvider.
+                nullable: true
+                type: string
+              conditions:
+                description: Standard Kubernetes condition list.
+                items:
+                  description: Lightweight Condition entry (mirrors `meta/v1 Condition`). Defined here because `k8s_openapi` types don't implement `JsonSchema`.
+                  properties:
+                    lastTransitionTime:
+                      description: RFC3339 timestamp of the last transition.
+                      type: string
+                    message:
+                      description: Human-readable description.
+                      type: string
+                    reason:
+                      description: Short machine-readable reason token (PascalCase).
+                      type: string
+                    status:
+                      description: '"True", "False", or "Unknown"'
+                      type: string
+                    type:
+                      description: e.g. "Ready", "Degraded"
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                nullable: true
+                type: array
+              tokensBudgetUsed:
+                description: Rolling hourly spend in USD based on token usage.
+                format: double
+                nullable: true
+                type: number
+            type: object
+        required:
+        - spec
+        title: LLMWorkload
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

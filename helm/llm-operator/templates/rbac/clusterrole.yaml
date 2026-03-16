@@ -1,0 +1,8 @@
+# Helm-templated ClusterRole for llm-operator.
+#
+# Wraps the static config/rbac/role.yaml with Helm metadata so names can be
+# prefixed with the release name (avoiding collisions in multi-release clusters).
+#
+# TODO Weekend 3: add full Helm template expressions and conditional webhook RBAC
+
+# Placeholder — see config/rbac/role.yaml for the base ClusterRole manifest.

@@ -1,0 +1,36 @@
+# Example LLMProvider: OpenRouter
+#
+# OpenRouter (https://openrouter.ai) is an API aggregator that exposes 100+
+# models (GPT-4o, Claude 3, Llama 3…) through a single OpenAI-compatible endpoint.
+# Using it as the primary provider lets the operator cost-compare across model
+# families without managing multiple API keys.
+#
+# Prerequisites:
+#   kubectl create secret generic openrouter-key \
+#     --from-literal=apiKey=<your-key>
+#
+# After applying: kubectl get llmproviders openrouter -o yaml
+# The operator will probe /api/v1/models and set status.ready=true within 30s.
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMProvider
+metadata:
+  name: openrouter
+  labels:
+    provider.llm.platform.io/type: cloud
+    provider.llm.platform.io/region: us-east-1
+    provider.llm.platform.io/training-opt-out: "true"
+spec:
+  endpoint: "https://openrouter.ai/api/v1"
+  authSecretRef:
+    name: openrouter-key
+    key: apiKey
+  costPerToken: 0.0025           # USD per 1K tokens (blended estimate)
+  rateLimit: 500                 # requests per minute
+  tags:
+    tier: primary
+    vendor: openrouter
+  healthCheck:
+    path: /api/v1/models
+    intervalSeconds: 60
+    timeoutSeconds: 5

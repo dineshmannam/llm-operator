@@ -1,0 +1,44 @@
+# Deployment template for the llm-operator pod.
+#
+# Key design choices:
+#   - Single container (no sidecar) — operator binary includes webhook server
+#   - Probes on /healthz (liveness) and /readyz (readiness) via the axum server
+#   - TLS cert mounted from Secret for the admission webhook
+#   - Resource limits set conservatively (operator is not on the hot inference path)
+#
+# TODO Weekend 3: flesh out this template with full Go-template expressions
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "llm-operator.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "llm-operator.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "llm-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "llm-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: operator
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --log-level={{ .Values.operator.logLevel }}
+            - --log-format={{ .Values.operator.logFormat }}
+            - --metrics-port={{ .Values.metrics.port }}
+            - --webhook-port={{ .Values.webhook.port }}
+            - --max-budget-per-hour={{ .Values.operator.maxBudgetPerHour }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+            - name: webhook
+              containerPort: {{ .Values.webhook.port }}
+          # TODO Weekend 3: add volumeMounts for TLS secret, livenessProbe, readinessProbe, resources

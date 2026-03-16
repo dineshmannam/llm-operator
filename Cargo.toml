@@ -1,0 +1,73 @@
+[package]
+name = "llm-operator"
+version = "0.1.0"
+edition = "2021"
+description = "A Kubernetes operator for cost-aware LLM routing and compliance enforcement"
+license = "MIT"
+
+[[bin]]
+name = "llm-operator"
+path = "src/main.rs"
+
+[lib]
+name = "llm_operator"
+path = "src/lib.rs"
+
+[dependencies]
+# Kubernetes client + controller runtime
+kube = { version = "0.91", features = ["runtime", "derive", "client", "ws"] }
+kube-derive = "0.91"
+k8s-openapi = { version = "0.22", features = ["v1_29"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# JSON Schema generation (required by kube-derive for CRD openAPIV3Schema)
+schemars = { version = "0.8", features = ["derive"] }
+
+# HTTP client for provider health probes
+reqwest = { version = "0.12", features = ["rustls-tls"], default-features = false }
+
+# HTTP server for admission webhook and metrics
+axum = { version = "0.7", features = ["json", "macros"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace"] }
+
+# Metrics
+prometheus = { version = "0.13", features = ["process"] }
+prometheus-client = "0.22"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Futures utilities
+futures = "0.3"
+futures-util = "0.3"
+
+# TLS for webhook server
+rustls = "0.22"
+tokio-rustls = "0.25"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+# Integration test helpers
+assert-json-diff = "2"
+tokio-test = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

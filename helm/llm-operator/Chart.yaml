@@ -1,0 +1,22 @@
+apiVersion: v2
+name: llm-operator
+description: >
+  Kubernetes operator for cost-aware LLM routing, budget enforcement,
+  and compliance validation across heterogeneous LLM providers.
+type: application
+version: 0.1.0          # chart version — bump on every chart change
+appVersion: "0.1.0"     # operator binary version — set by CI from git tag
+
+maintainers:
+  - name: Dinesh Mannam
+
+keywords:
+  - kubernetes
+  - operator
+  - llm
+  - ai
+  - mlops
+  - cost-optimization
+
+sources:
+  - https://github.com/dineshmannam/llm-operator

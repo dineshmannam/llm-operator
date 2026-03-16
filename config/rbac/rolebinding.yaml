@@ -1,0 +1,18 @@
+# ClusterRoleBinding — binds the ClusterRole to the operator's ServiceAccount.
+#
+# The ServiceAccount is created by the Helm chart in the operator's namespace
+# (default: llm-operator-system). This manifest references it by name so it
+# can also be applied standalone (without Helm) for development clusters.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: llm-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: llm-operator
+subjects:
+  - kind: ServiceAccount
+    name: llm-operator
+    namespace: llm-operator-system

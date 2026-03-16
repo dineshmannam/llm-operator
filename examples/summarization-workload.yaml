@@ -1,0 +1,37 @@
+# Example LLMWorkload: document summarization pipeline
+#
+# This workload represents a batch Job that summarizes support tickets.
+# It uses CostAware routing to prefer the cheapest ready provider, with
+# a $5/hour budget cap enforced by the admission webhook.
+#
+# The operator writes the resolved provider endpoint to the ConfigMap
+# `summarizer-llm-config`, which the Job reads as an environment variable
+# via envFrom:configMapRef.
+#
+# Compliance settings:
+#   noTrainingData: true  — only providers with trainingOptOut label are selected
+#   dataResidency: us     — only providers labeled region=us-* are selected
+#
+# After applying, watch the routing decision:
+#   kubectl get llmworkload summarization-job -o jsonpath='{.status.activeProvider}'
+#   kubectl get configmap summarizer-llm-config -o yaml
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMWorkload
+metadata:
+  name: summarization-job
+  namespace: data-pipelines
+spec:
+  routingStrategy: CostAware
+  providerSelector:
+    matchLabels:
+      provider.llm.platform.io/training-opt-out: "true"
+      provider.llm.platform.io/region: us-east-1
+  budgetPerHour: 5.00              # USD; admission webhook rejects if exceeded
+  compliance:
+    dataResidency: us
+    noTrainingData: true
+  targetConfigMap: summarizer-llm-config
+  scaleOnQueueDepth:
+    metricName: summarization_queue_depth
+    threshold: 100                 # if queue > 100, emit HPA scale-up hint

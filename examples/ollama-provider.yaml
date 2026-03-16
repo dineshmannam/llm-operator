@@ -1,0 +1,34 @@
+# Example LLMProvider: Ollama (local / in-cluster fallback)
+#
+# Ollama runs open-weight models (Llama 3, Mistral, Phi-3…) locally.
+# As a fallback provider it ensures the workload degrades gracefully if
+# OpenRouter is rate-limited or over budget — no API key required, zero
+# per-token cost.
+#
+# In-cluster setup: deploy Ollama as a Deployment in the same namespace and
+# expose it as a ClusterIP Service named `ollama`. The operator probes
+# http://ollama:11434/api/tags (Ollama's model-list endpoint).
+#
+# Alternatively, use a node-local Ollama daemon via a NodePort or HostPort
+# for GPU-accelerated inference without cloud cost.
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMProvider
+metadata:
+  name: ollama-local
+  labels:
+    provider.llm.platform.io/type: local
+    provider.llm.platform.io/region: in-cluster
+    provider.llm.platform.io/training-opt-out: "true"
+spec:
+  endpoint: "http://ollama:11434/v1"   # OpenAI-compatible mode (Ollama ≥0.1.24)
+  # No authSecretRef — Ollama has no auth by default
+  costPerToken: 0.0                    # self-hosted; only infra cost applies
+  rateLimit: 50                        # conservative; single GPU, 4-bit quant
+  tags:
+    tier: fallback
+    vendor: ollama
+  healthCheck:
+    path: /api/tags
+    intervalSeconds: 30
+    timeoutSeconds: 3
