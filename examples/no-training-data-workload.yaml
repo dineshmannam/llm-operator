@@ -1,0 +1,33 @@
+# Demo file — Scene 7: Workload with noTrainingData=true rejected by webhook
+#
+# This workload selects `unprotected-provider` (by name) which is missing the
+# `training-opt-out: true` label. The admission webhook enforces the compliance
+# constraint and rejects the workload before anything runs.
+#
+# Setup:
+#   kubectl apply -f examples/no-training-opt-out-provider.yaml
+#   kubectl apply -f examples/no-training-data-workload.yaml
+#
+# Expected output:
+#   Error from server: admission webhook "llm-operator.llm.platform.io" denied
+#   the request: noTrainingData=true but no LLMProvider has
+#   provider.llm.platform.io/training-opt-out=true label
+#
+# To fix: add the label to the provider and re-apply the workload.
+#   kubectl label llmprovider unprotected-provider \
+#     provider.llm.platform.io/training-opt-out=true
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMWorkload
+metadata:
+  name: compliance-sensitive-job
+  namespace: data-pipelines
+spec:
+  routingStrategy: CostAware
+  providerSelector:
+    names:
+      - unprotected-provider     # intentionally selects the provider without opt-out label
+  budgetPerHour: 5.00
+  compliance:
+    noTrainingData: true         # this triggers the webhook rejection
+  targetConfigMap: compliance-job-config

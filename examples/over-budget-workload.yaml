@@ -1,0 +1,24 @@
+# Demo file — Scene 6: Admission webhook rejects over-budget workload
+#
+# This workload sets budgetPerHour: 999, which exceeds the operator's
+# cluster-wide cap (default $100/hr, set via LLM_MAX_BUDGET env var).
+#
+# Expected behaviour:
+#   kubectl apply -f examples/over-budget-workload.yaml
+#   → Error from server: budgetPerHour $999.00 exceeds cluster maximum $100.00
+#
+# The rejection happens at admission time — no pod is scheduled,
+# no ConfigMap is written. This is the "policy enforced before anything runs" demo.
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMWorkload
+metadata:
+  name: over-budget-job
+  namespace: data-pipelines
+spec:
+  routingStrategy: CostAware
+  providerSelector:
+    matchLabels:
+      provider.llm.platform.io/training-opt-out: "true"
+  budgetPerHour: 999.00          # intentionally above cluster cap
+  targetConfigMap: over-budget-config

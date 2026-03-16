@@ -1,0 +1,36 @@
+# Demo file — Scene 7: Provider intentionally missing the training-opt-out label
+#
+# This provider does NOT carry the `provider.llm.platform.io/training-opt-out: "true"`
+# label. When a workload with `noTrainingData: true` selects it, the admission
+# webhook will reject the workload at apply time.
+#
+# Apply this first:
+#   kubectl apply -f examples/no-training-opt-out-provider.yaml
+#
+# Then trigger the rejection:
+#   kubectl apply -f examples/no-training-data-workload.yaml
+#   → Error from server: noTrainingData=true but no LLMProvider has
+#     provider.llm.platform.io/training-opt-out=true label
+#
+# Note: no `training-opt-out` label present — that is intentional for the demo.
+
+apiVersion: llm.platform.io/v1alpha1
+kind: LLMProvider
+metadata:
+  name: unprotected-provider
+  labels:
+    provider.llm.platform.io/type: cloud
+    provider.llm.platform.io/region: us-east-1
+    provider.llm.platform.io/tier: unprotected   # no training-opt-out label
+spec:
+  endpoint: "https://api.openai.com/v1"
+  model: "gpt-4o-mini"
+  authSecretRef:
+    name: openai-key
+    key: apiKey
+  costPerToken: 0.002
+  rateLimit: 200
+  healthCheck:
+    path: /v1/models
+    intervalSeconds: 60
+    timeoutSeconds: 5
