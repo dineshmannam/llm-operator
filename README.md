@@ -66,9 +66,9 @@ The operator exposes a stable interface via Kubernetes primitives — no SDK, no
 # 1. Install CRDs
 kubectl apply -f config/crd/
 
-# 2. Deploy operator via Helm
+# 2. Deploy operator via Helm (replace <version> with a release tag, e.g. v0.1.0)
 helm install llm-operator helm/llm-operator/ \
-  --set image.tag=latest \
+  --set image.tag=v0.1.0 \
   --set webhook.enabled=true
 
 # 3. Create a provider
