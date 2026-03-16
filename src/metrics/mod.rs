@@ -6,4 +6,7 @@
 
 pub mod registry;
 
-pub use registry::MetricsRegistry;
+pub use registry::{
+    AdmissionLabels, ControllerLabels, MetricsRegistry, ProviderLabels, RoutingLabels,
+    WorkloadLabels,
+};

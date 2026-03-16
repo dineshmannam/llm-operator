@@ -13,10 +13,15 @@ pub mod workload;
 pub use provider::Context;
 
 /// Start all controllers and run them until the process exits.
-pub async fn run(client: Client, metrics: Arc<MetricsRegistry>) -> anyhow::Result<()> {
+pub async fn run(
+    client: Client,
+    metrics: Arc<MetricsRegistry>,
+    max_budget_per_hour: f64,
+) -> anyhow::Result<()> {
     let ctx = Arc::new(Context {
         client: client.clone(),
         metrics,
+        max_budget_per_hour,
     });
 
     let provider_api: Api<LLMProvider> = Api::all(client.clone());

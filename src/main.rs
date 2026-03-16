@@ -4,7 +4,10 @@ use axum::{routing::get, Router};
 use tracing::info;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
-use llm_operator::{controllers, metrics::MetricsRegistry};
+use llm_operator::{controllers, metrics::MetricsRegistry, webhook};
+
+/// Cluster-wide max budget cap in USD/hr. Configurable via env var LLM_MAX_BUDGET.
+const DEFAULT_MAX_BUDGET_PER_HOUR: f64 = 100.0;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -42,8 +45,23 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // ── Run controller + HTTP server concurrently ─────────────────────────
+    let max_budget = std::env::var("LLM_MAX_BUDGET")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(DEFAULT_MAX_BUDGET_PER_HOUR);
+
+    // Shared context used by controllers and the webhook
+    let ctx = std::sync::Arc::new(llm_operator::controllers::provider::Context {
+        client: client.clone(),
+        metrics: metrics.clone(),
+        max_budget_per_hour: max_budget,
+    });
+
+    let webhook_addr = "0.0.0.0:8443".parse().unwrap();
+
     tokio::join!(
-        controllers::run(client, metrics),
+        controllers::run(client, metrics, max_budget),
+        webhook::serve(webhook_addr, ctx),
         http_server,
     ).0?;
 

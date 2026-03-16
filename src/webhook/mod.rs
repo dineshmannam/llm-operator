@@ -1,14 +1,32 @@
-//! Admission webhook server module.
-//!
-//! Exposes `pub async fn serve(addr: SocketAddr, tls_config: RustlsConfig)`
-//! which the main entrypoint calls. Internally mounts:
-//!   - POST /validate  — ValidatingAdmissionWebhook handler for LLMWorkload
-//!   - GET  /healthz   — liveness probe for the webhook pod
-//!
-//! TLS is required by Kubernetes for admission webhooks. In-cluster certs are
-//! expected to be mounted at /tls/tls.crt and /tls/tls.key (managed by
-//! cert-manager or the Helm chart's self-signed CA job).
+use std::net::SocketAddr;
+use std::sync::Arc;
+
+use axum::{routing::{get, post}, Router};
+use tracing::info;
+
+use crate::controllers::provider::Context;
 
 pub mod admission;
 
-// TODO Weekend 2: implement pub async fn serve(addr, tls_config) using axum::Router
+/// Start the admission webhook HTTP server.
+///
+/// Mounts:
+///   POST /validate — ValidatingAdmissionWebhook handler for LLMWorkload
+///   GET  /healthz  — liveness probe
+///
+/// # TLS note
+/// Kubernetes requires HTTPS for admission webhooks in production.
+/// For the demo cluster, configure the ValidatingWebhookConfiguration with
+/// `insecureSkipTLSVerify: true` or use cert-manager to provision certs and
+/// terminate TLS at the ingress layer. Full in-process TLS via rustls is
+/// planned for the Weekend 3 Helm/CI pass.
+pub async fn serve(addr: SocketAddr, ctx: Arc<Context>) {
+    let app = Router::new()
+        .route("/validate", post(admission::validate_llm_workload))
+        .route("/healthz", get(|| async { "ok" }))
+        .with_state(ctx);
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    info!(%addr, "webhook server listening");
+    axum::serve(listener, app).await.unwrap();
+}

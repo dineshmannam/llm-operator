@@ -15,10 +15,13 @@ use crate::crd::{
 };
 use crate::metrics::MetricsRegistry;
 
-/// Shared state passed to every reconcile call.
+/// Shared state passed to every reconcile call and the admission webhook.
 pub struct Context {
     pub client: Client,
     pub metrics: Arc<MetricsRegistry>,
+    /// Cluster-wide maximum allowed `budgetPerHour` (USD).
+    /// The admission webhook rejects workloads that exceed this value.
+    pub max_budget_per_hour: f64,
 }
 
 /// Error type for the provider reconciler.
