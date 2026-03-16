@@ -2,21 +2,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use kube::ResourceExt;
 
+use crate::crd::llm_workload::RoutingStrategy;
 use crate::crd::{LLMProvider, LLMProviderStatus};
-
-/// Routing algorithm used to select a provider from the ready candidate pool.
-#[derive(Debug, Clone, PartialEq)]
-pub enum RoutingStrategy {
-    /// Pick the provider with the lowest `costPerToken`.
-    CostAware,
-    /// Pick the provider with the lowest observed probe latency (p50).
-    /// Falls back to CostAware if latency data is unavailable.
-    LatencyFirst,
-    /// Distribute requests evenly across all ready providers.
-    RoundRobin,
-    /// Use the first provider (lexicographic by name); only switch on unhealthy.
-    Failover,
-}
 
 /// Select a provider from `candidates` (all assumed ready) using `strategy`.
 ///

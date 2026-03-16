@@ -9,4 +9,5 @@
 
 pub mod strategy;
 
-pub use strategy::{is_ready, select_provider, RoutingStrategy};
+pub use crate::crd::llm_workload::RoutingStrategy;
+pub use strategy::{is_ready, select_provider};
