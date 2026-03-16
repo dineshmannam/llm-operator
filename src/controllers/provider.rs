@@ -3,7 +3,11 @@ use std::time::Duration;
 
 use kube::{
     api::{Api, Patch, PatchParams},
-    runtime::controller::Action,
+    runtime::{
+        controller::Action,
+        events::{Event, EventType, Recorder, Reporter},
+        reflector::ObjectRef,
+    },
     Client, ResourceExt,
 };
 use serde_json::json;
@@ -68,12 +72,7 @@ pub async fn reconcile(
         .unwrap_or(false);
 
     if probe_ok != was_ready {
-        // TODO Weekend 2: replace with proper K8s Event via kube::runtime::events::Recorder
-        if probe_ok {
-            info!(provider = %name, "health state transition: Unhealthy → Ready");
-        } else {
-            warn!(provider = %name, err = ?probe_err_msg, "health state transition: Ready → Unhealthy");
-        }
+        emit_health_event(client.clone(), &provider, probe_ok, &probe_err_msg).await;
     }
 
     // ── 3. Patch status ───────────────────────────────────────────────────
@@ -157,6 +156,56 @@ async fn run_health_probe(provider: &LLMProvider) -> (bool, Option<String>) {
             Some(format!("HTTP {} from {url}", resp.status().as_u16())),
         ),
         Err(e) => (false, Some(format!("request error: {e}"))),
+    }
+}
+
+/// Emit a Kubernetes Event on health state transitions so operators can see
+/// Ready ↔ Unhealthy changes in `kubectl describe llmprovider <name>`.
+async fn emit_health_event(
+    client: Client,
+    provider: &LLMProvider,
+    now_ready: bool,
+    err_msg: &Option<String>,
+) {
+    let obj_ref = ObjectRef::from_obj(provider).erase();
+
+    let recorder = Recorder::new(
+        client,
+        Reporter {
+            controller: "llm-operator".into(),
+            instance: None,
+        },
+        obj_ref.into(),
+    );
+
+    let (event_type, reason, note) = if now_ready {
+        (
+            EventType::Normal,
+            "ProviderReady",
+            "Health probe succeeded; provider marked Ready.".to_string(),
+        )
+    } else {
+        (
+            EventType::Warning,
+            "ProviderUnhealthy",
+            format!(
+                "Health probe failed: {}",
+                err_msg.as_deref().unwrap_or("unknown error")
+            ),
+        )
+    };
+
+    if let Err(e) = recorder
+        .publish(Event {
+            type_: event_type,
+            reason: reason.into(),
+            note: Some(note),
+            action: "HealthProbe".into(),
+            secondary: None,
+        })
+        .await
+    {
+        warn!(provider = %provider.name_any(), err = %e, "failed to publish K8s event");
     }
 }
 
