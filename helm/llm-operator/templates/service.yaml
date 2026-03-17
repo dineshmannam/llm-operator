@@ -1,26 +1,20 @@
-# Service exposing the operator's metrics and webhook ports.
-#
-# Two ports:
-#   metrics (8080) — scraped by Prometheus / ServiceMonitor
-#   webhook (8443) — targeted by the ValidatingWebhookConfiguration
-#
-# The webhook port must be reachable by the kube-apiserver, so this must be
-# a ClusterIP service (or LoadBalancer in external-apiserver setups).
-
-# TODO Weekend 3: add full Helm template expressions
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ "llm-operator" }}
+  name: {{ include "llm-operator.fullname" . }}
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "llm-operator.labels" . | nindent 4 }}
 spec:
+  type: ClusterIP
   selector:
-    app: llm-operator
+    {{- include "llm-operator.selectorLabels" . | nindent 4 }}
   ports:
     - name: metrics
       port: {{ .Values.metrics.port }}
       targetPort: metrics
+      protocol: TCP
     - name: webhook
       port: 443
       targetPort: webhook
+      protocol: TCP

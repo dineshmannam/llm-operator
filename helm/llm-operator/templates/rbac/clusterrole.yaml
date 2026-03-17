@@ -1,8 +1,30 @@
-# Helm-templated ClusterRole for llm-operator.
-#
-# Wraps the static config/rbac/role.yaml with Helm metadata so names can be
-# prefixed with the release name (avoiding collisions in multi-release clusters).
-#
-# TODO Weekend 3: add full Helm template expressions and conditional webhook RBAC
-
-# Placeholder — see config/rbac/role.yaml for the base ClusterRole manifest.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "llm-operator.fullname" . }}
+  labels:
+    {{- include "llm-operator.labels" . | nindent 4 }}
+rules:
+  # Read and patch CRDs managed by this operator
+  - apiGroups: ["llm.platform.io"]
+    resources: ["llmproviders", "llmworkloads"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  - apiGroups: ["llm.platform.io"]
+    resources: ["llmproviders/status", "llmworkloads/status"]
+    verbs: ["patch", "update"]
+  # Write resolved endpoint ConfigMaps for workloads
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Read auth secrets (never written — only the reference is stored in the ConfigMap)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  # Emit Kubernetes Events on health state transitions
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  # Leader election (ensures only one replica reconciles at a time)
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

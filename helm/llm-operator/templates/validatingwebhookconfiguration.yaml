@@ -1,0 +1,45 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "llm-operator.fullname" . }}
+  labels:
+    {{- include "llm-operator.labels" . | nindent 4 }}
+  {{- if .Values.webhook.certManager.enabled }}
+  annotations:
+    # cert-manager injects the caBundle automatically when this annotation is present.
+    cert-manager.io/inject-ca-from: {{ .Values.namespace }}/{{ include "llm-operator.fullname" . }}-webhook-cert
+  {{- end }}
+webhooks:
+  - name: llm-operator.llm.platform.io
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Fail
+    rules:
+      - apiGroups: ["llm.platform.io"]
+        apiVersions: ["v1alpha1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["llmworkloads"]
+        scope: Namespaced
+    clientConfig:
+      service:
+        name: {{ include "llm-operator.fullname" . }}
+        namespace: {{ .Values.namespace }}
+        path: /validate
+        port: 443
+      {{- if not .Values.webhook.certManager.enabled }}
+      # When cert-manager is disabled, set caBundle manually after generating a self-signed cert.
+      # See the TLS bootstrap instructions in the README.
+      caBundle: ""
+      {{- end }}
+    # Only validate workloads in namespaces that opt-in via this label.
+    # Keeps the webhook from interfering with kube-system and other system namespaces.
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values:
+            - kube-system
+            - kube-public
+            - {{ .Values.namespace }}
+{{- end }}

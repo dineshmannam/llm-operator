@@ -1,6 +1,9 @@
 # Default values for llm-operator Helm chart.
 # Override with: helm install llm-operator . -f my-values.yaml
 
+nameOverride: ""
+fullnameOverride: ""
+
 replicaCount: 1
 
 image:
