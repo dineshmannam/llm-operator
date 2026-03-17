@@ -14,7 +14,7 @@ Built as a portfolio piece demonstrating: operator patterns, cost-aware distribu
 
 ## Demo
 
-> Video walkthrough coming soon — will cover the 8 demo scenes below end-to-end on an AKS cluster.
+> Video walkthrough coming soon — will cover the demo scenes below end-to-end on an AKS cluster.
 
 Key scenes covered in the demo:
 
