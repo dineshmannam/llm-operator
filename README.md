@@ -1,5 +1,9 @@
 # llm-operator
 
+[![CI](https://github.com/dineshmannam/llm-operator/actions/workflows/ci.yml/badge.svg)](https://github.com/dineshmannam/llm-operator/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
+
 A production-grade Kubernetes operator written in Rust ([kube-rs](https://github.com/kube-rs/kube)) that manages LLM provider lifecycles, enforces cost budgets, and routes inference workloads across heterogeneous backends.
 
 Built as a portfolio piece demonstrating: operator patterns, cost-aware distributed routing, admission control, and Prometheus observability — all on top of the Kubernetes control loop model.
