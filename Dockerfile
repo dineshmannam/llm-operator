@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ── Stage 1: build ───────────────────────────────────────────────────────────
-FROM rust:1.77-slim AS builder
+FROM rust:1-slim AS builder
 
 WORKDIR /app
 
