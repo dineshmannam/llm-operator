@@ -76,10 +76,11 @@ pub async fn validate_llm_workload(
     }
 
     // ── Checks 2–4: provider-based (require K8s API) ──────────────────────
-    let providers = match list_matching_providers(&ctx.client, &workload.spec.provider_selector).await {
-        Ok(p) => p,
-        Err(e) => return deny(&uid, &format!("failed to list providers: {e}")),
-    };
+    let providers =
+        match list_matching_providers(&ctx.client, &workload.spec.provider_selector).await {
+            Ok(p) => p,
+            Err(e) => return deny(&uid, &format!("failed to list providers: {e}")),
+        };
 
     if let Err(msg) = check_provider_existence(&providers, &workload.name_any()) {
         record_admission(&ctx, false);
@@ -112,7 +113,10 @@ pub fn check_budget(budget_per_hour: &f64, max: f64) -> Result<(), String> {
 }
 
 /// Check 2: at least one provider must match the selector.
-pub fn check_provider_existence(providers: &[LLMProvider], workload_name: &str) -> Result<(), String> {
+pub fn check_provider_existence(
+    providers: &[LLMProvider],
+    workload_name: &str,
+) -> Result<(), String> {
     if providers.is_empty() {
         Err(format!(
             "no LLMProviders match the providerSelector for workload '{workload_name}'"
@@ -128,7 +132,10 @@ pub fn check_provider_existence(providers: &[LLMProvider], workload_name: &str) 
 ///   the specified value (e.g. "us" matches "us-east-1").
 /// - `noTrainingData`: if true, at least one provider must carry the
 ///   `provider.llm.platform.io/training-opt-out: "true"` label.
-pub fn check_compliance(providers: &[LLMProvider], compliance: &ComplianceConfig) -> Result<(), String> {
+pub fn check_compliance(
+    providers: &[LLMProvider],
+    compliance: &ComplianceConfig,
+) -> Result<(), String> {
     if let Some(region_prefix) = &compliance.data_residency {
         let ok = providers.iter().any(|p| {
             p.labels()
@@ -152,11 +159,9 @@ pub fn check_compliance(providers: &[LLMProvider], compliance: &ComplianceConfig
                 .unwrap_or(false)
         });
         if !ok {
-            return Err(
-                "noTrainingData=true but no LLMProvider has \
+            return Err("noTrainingData=true but no LLMProvider has \
                  provider.llm.platform.io/training-opt-out=true label"
-                    .to_string(),
-            );
+                .to_string());
         }
     }
 
@@ -187,7 +192,10 @@ async fn list_matching_providers(
             .map(|(k, v)| format!("{k}={v}"))
             .collect::<Vec<_>>()
             .join(",");
-        Ok(api.list(&ListParams::default().labels(&label_selector)).await?.items)
+        Ok(api
+            .list(&ListParams::default().labels(&label_selector))
+            .await?
+            .items)
     } else {
         Ok(vec![])
     }

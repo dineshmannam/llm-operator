@@ -58,7 +58,7 @@ pub struct Condition {
     printcolumn = r#"{"name":"Ready","type":"string","jsonPath":".status.ready"}"#,
     printcolumn = r#"{"name":"Endpoint","type":"string","jsonPath":".spec.endpoint"}"#,
     printcolumn = r#"{"name":"Cost/1KTok","type":"number","jsonPath":".spec.costPerToken"}"#,
-    printcolumn = r#"{"name":"Age","type":"date","jsonPath":".metadata.creationTimestamp"}"#,
+    printcolumn = r#"{"name":"Age","type":"date","jsonPath":".metadata.creationTimestamp"}"#
 )]
 pub struct LLMProviderSpec {
     /// Base URL of the inference API (e.g. `https://openrouter.ai/api/v1`).
@@ -69,6 +69,7 @@ pub struct LLMProviderSpec {
     ///   - OpenRouter: `"openai/gpt-4o-mini"`, `"anthropic/claude-3-5-sonnet"`
     ///   - Ollama:     `"llama3"`, `"mistral"`, `"phi3"`
     ///   - OpenAI:     `"gpt-4o"`, `"gpt-4o-mini"`
+    ///
     /// Written to the target ConfigMap as `MODEL_NAME` for the app to consume.
     pub model: String,
 

@@ -63,7 +63,8 @@ async fn main() -> anyhow::Result<()> {
         controllers::run(client, metrics, max_budget),
         webhook::serve(webhook_addr, ctx),
         http_server,
-    ).0?;
+    )
+    .0?;
 
     Ok(())
 }

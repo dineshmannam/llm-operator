@@ -2,13 +2,16 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
 
-use axum::{routing::{get, post}, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server::conn::auto::Builder;
 use hyper_util::service::TowerToHyperService;
 use tokio::net::TcpListener;
-use tokio_rustls::TlsAcceptor;
 use tokio_rustls::rustls::ServerConfig;
+use tokio_rustls::TlsAcceptor;
 use tracing::{info, warn};
 
 use crate::controllers::provider::Context;
@@ -38,10 +41,8 @@ pub async fn serve(addr: SocketAddr, ctx: Arc<Context>) {
         .route("/healthz", get(|| async { "ok" }))
         .with_state(ctx);
 
-    let cert_path = std::env::var("WEBHOOK_TLS_CERT")
-        .unwrap_or_else(|_| DEFAULT_CERT_PATH.into());
-    let key_path = std::env::var("WEBHOOK_TLS_KEY")
-        .unwrap_or_else(|_| DEFAULT_KEY_PATH.into());
+    let cert_path = std::env::var("WEBHOOK_TLS_CERT").unwrap_or_else(|_| DEFAULT_CERT_PATH.into());
+    let key_path = std::env::var("WEBHOOK_TLS_KEY").unwrap_or_else(|_| DEFAULT_KEY_PATH.into());
 
     let listener = TcpListener::bind(addr).await.unwrap();
 
@@ -109,8 +110,7 @@ fn build_tls_acceptor(cert_path: &str, key_path: &str) -> anyhow::Result<TlsAcce
     let cert_pem = std::fs::read(cert_path)?;
     let key_pem = std::fs::read(key_path)?;
 
-    let certs = rustls_pemfile::certs(&mut cert_pem.as_slice())
-        .collect::<Result<Vec<_>, _>>()?;
+    let certs = rustls_pemfile::certs(&mut cert_pem.as_slice()).collect::<Result<Vec<_>, _>>()?;
 
     let key = rustls_pemfile::private_key(&mut key_pem.as_slice())?
         .ok_or_else(|| anyhow::anyhow!("no private key found in {key_path}"))?;

@@ -21,15 +21,12 @@ pub fn select_provider<'a>(
     }
 
     match strategy {
-        RoutingStrategy::CostAware => candidates
-            .iter()
-            .copied()
-            .min_by(|a, b| {
-                a.spec
-                    .cost_per_token
-                    .partial_cmp(&b.spec.cost_per_token)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            }),
+        RoutingStrategy::CostAware => candidates.iter().copied().min_by(|a, b| {
+            a.spec
+                .cost_per_token
+                .partial_cmp(&b.spec.cost_per_token)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }),
 
         RoutingStrategy::LatencyFirst => {
             // Latency data lives in metrics; without it we fall back to CostAware.

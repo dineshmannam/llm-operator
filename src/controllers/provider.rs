@@ -65,11 +65,7 @@ pub async fn reconcile(
     ctx.metrics.observe_probe_duration(&name, elapsed);
 
     // ── 2. Determine if health state changed ─────────────────────────────
-    let was_ready = provider
-        .status
-        .as_ref()
-        .map(|s| s.ready)
-        .unwrap_or(false);
+    let was_ready = provider.status.as_ref().map(|s| s.ready).unwrap_or(false);
 
     if probe_ok != was_ready {
         emit_health_event(client.clone(), &provider, probe_ok, &probe_err_msg).await;
@@ -79,11 +75,21 @@ pub async fn reconcile(
     ctx.metrics.set_provider_health(&name, probe_ok);
 
     let now = chrono::Utc::now().to_rfc3339();
-    let reason = if probe_ok { "ProbeSucceeded" } else { "ProbeFailed" };
-    let message = if probe_ok {
-        format!("Health probe to {} succeeded in {:.0}ms", provider.spec.endpoint, elapsed * 1000.0)
+    let reason = if probe_ok {
+        "ProbeSucceeded"
     } else {
-        probe_err_msg.clone().unwrap_or_else(|| "Probe failed".into())
+        "ProbeFailed"
+    };
+    let message = if probe_ok {
+        format!(
+            "Health probe to {} succeeded in {:.0}ms",
+            provider.spec.endpoint,
+            elapsed * 1000.0
+        )
+    } else {
+        probe_err_msg
+            .clone()
+            .unwrap_or_else(|| "Probe failed".into())
     };
 
     let new_status = LLMProviderStatus {

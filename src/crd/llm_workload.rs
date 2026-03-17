@@ -69,7 +69,7 @@ pub struct QueueDepthScaler {
     printcolumn = r#"{"name":"Strategy","type":"string","jsonPath":".spec.routingStrategy"}"#,
     printcolumn = r#"{"name":"ActiveProvider","type":"string","jsonPath":".status.activeProvider"}"#,
     printcolumn = r#"{"name":"BudgetUsed","type":"number","jsonPath":".status.tokensBudgetUsed"}"#,
-    printcolumn = r#"{"name":"Age","type":"date","jsonPath":".metadata.creationTimestamp"}"#,
+    printcolumn = r#"{"name":"Age","type":"date","jsonPath":".metadata.creationTimestamp"}"#
 )]
 pub struct LLMWorkloadSpec {
     /// Which algorithm to use when selecting among candidate providers.

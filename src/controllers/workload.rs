@@ -85,8 +85,11 @@ pub async fn reconcile(
         "routing decision made"
     );
 
-    ctx.metrics
-        .inc_request(&chosen_name, &name, &format!("{:?}", workload.spec.routing_strategy));
+    ctx.metrics.inc_request(
+        &chosen_name,
+        &name,
+        &format!("{:?}", workload.spec.routing_strategy),
+    );
 
     // ── 5. Write ConfigMap ────────────────────────────────────────────────
     write_configmap(
@@ -142,6 +145,7 @@ async fn list_candidate_providers(
 
 /// Write the resolved provider config to the target ConfigMap.
 /// Uses server-side apply — creates the ConfigMap if absent, patches if present.
+#[allow(clippy::too_many_arguments)]
 async fn write_configmap(
     client: &Client,
     namespace: &str,
@@ -173,7 +177,10 @@ async fn write_configmap(
     data.insert("MODEL_NAME".into(), provider.spec.model.clone());
     data.insert("AUTH_SECRET_NAME".into(), auth_secret_name.to_string());
     data.insert("AUTH_SECRET_KEY".into(), auth_secret_key.to_string());
-    data.insert("BUDGET_REMAINING_USD".into(), format!("{budget_remaining:.4}"));
+    data.insert(
+        "BUDGET_REMAINING_USD".into(),
+        format!("{budget_remaining:.4}"),
+    );
     data.insert("BUDGET_LIMIT_USD".into(), format!("{budget_limit:.4}"));
     data.insert("ROUTING_STRATEGY".into(), format!("{strategy:?}"));
     data.insert(
@@ -264,8 +271,12 @@ async fn patch_workload_status(
     };
 
     let patch = json!({ "status": status });
-    api.patch_status(name, &PatchParams::apply("llm-operator"), &Patch::Merge(&patch))
-        .await?;
+    api.patch_status(
+        name,
+        &PatchParams::apply("llm-operator"),
+        &Patch::Merge(&patch),
+    )
+    .await?;
 
     Ok(())
 }

@@ -1,6 +1,7 @@
 # Rust build artifacts
 /target/
-Cargo.lock
+# Note: Cargo.lock is intentionally committed — this is a binary crate.
+# Committing Cargo.lock ensures reproducible builds in CI.
 
 # Generated CRD schemas (generated at build time)
 /config/crd/generated/
