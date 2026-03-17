@@ -5,8 +5,9 @@ FROM rust:1.77-slim AS builder
 
 WORKDIR /app
 
-# Cache dependencies separately from source
-COPY Cargo.toml ./
+# Cache dependencies separately from source.
+# Cargo.lock must be copied alongside Cargo.toml so --locked builds succeed.
+COPY Cargo.toml Cargo.lock ./
 # Dummy src so cargo can resolve deps without full source
 RUN mkdir src && echo "fn main() {}" > src/main.rs && echo "" > src/lib.rs
 RUN cargo build --release --locked || true
