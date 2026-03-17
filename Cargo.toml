@@ -57,6 +57,8 @@ futures-util = "0.3"
 # TLS for webhook server
 rustls = "0.22"
 tokio-rustls = "0.25"
+rustls-pemfile = "2"          # PEM cert/key parsing (cert-manager produces PEM)
+hyper-util = { version = "0.1", features = ["tokio", "server", "http1", "service"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }

@@ -1,0 +1,17 @@
+# Self-signed ClusterIssuer for the admission webhook TLS certificate.
+#
+# Prerequisites: cert-manager must be installed in the cluster.
+#   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+#
+# Apply before the Certificate:
+#   kubectl apply -f config/tls/issuer.yaml
+#   kubectl apply -f config/tls/certificate.yaml
+#
+# For production, replace with an ACME or internal CA issuer.
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}

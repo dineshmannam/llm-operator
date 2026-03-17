@@ -10,7 +10,6 @@ use crate::controllers::provider::Context;
 use crate::crd::llm_workload::{ComplianceConfig, ProviderSelector};
 use crate::crd::{LLMProvider, LLMWorkload};
 use crate::metrics::AdmissionLabels;
-use crate::routing::is_ready;
 
 // ── AdmissionReview wire types ────────────────────────────────────────────────
 

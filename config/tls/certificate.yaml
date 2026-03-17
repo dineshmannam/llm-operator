@@ -1,0 +1,24 @@
+# cert-manager Certificate for the llm-operator admission webhook.
+#
+# cert-manager writes the signed cert + key into the Secret named below.
+# The Helm Deployment mounts that Secret at /tls, and webhook::serve()
+# picks it up automatically on startup.
+#
+# The dnsNames must match the Service name + namespace used by the
+# ValidatingWebhookConfiguration's clientConfig.service block.
+# Default Helm release name is "llm-operator" in namespace "llm-operator-system".
+# Adjust dnsNames if you deploy with a different release name.
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: llm-operator-webhook-cert
+  namespace: llm-operator-system
+spec:
+  secretName: llm-operator-webhook-tls    # matches webhook.tlsSecretName in values.yaml
+  dnsNames:
+    - llm-operator.llm-operator-system.svc
+    - llm-operator.llm-operator-system.svc.cluster.local
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer

@@ -284,8 +284,6 @@ pub fn error_policy(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     /// Budget enforcement: if used >= limit, remaining should be 0.
     #[test]
     fn budget_remaining_clamps_to_zero() {

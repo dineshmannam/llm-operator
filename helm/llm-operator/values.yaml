@@ -42,14 +42,19 @@ metrics:
 webhook:
   enabled: true
   port: 8443
-  # cert-manager integration — set to true if cert-manager is installed
+  # cert-manager integration — set to true if cert-manager is installed.
+  # Apply config/tls/issuer.yaml and config/tls/certificate.yaml first.
   certManager:
     enabled: false
     issuerRef:
       name: selfsigned-issuer
       kind: ClusterIssuer
-  # Manual TLS — mount your own certs into this secret
+  # Secret containing tls.crt and tls.key (written by cert-manager or manually).
+  # Mounted at /tls in the operator pod; picked up by webhook::serve() at startup.
   tlsSecretName: llm-operator-webhook-tls
+  # For local/dev clusters without cert-manager. Skips TLS verification in the
+  # ValidatingWebhookConfiguration. Do NOT set to true in production.
+  insecureSkipTLSVerify: false
 
 resources:
   limits:

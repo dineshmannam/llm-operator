@@ -27,13 +27,16 @@ webhooks:
         namespace: {{ .Values.namespace }}
         path: /validate
         port: 443
-      {{- if not .Values.webhook.certManager.enabled }}
-      # When cert-manager is disabled, set caBundle manually after generating a self-signed cert.
-      # See the TLS bootstrap instructions in the README.
+      {{- if .Values.webhook.insecureSkipTLSVerify }}
+      # insecureSkipTLSVerify is set — suitable for local/dev clusters where TLS
+      # certs are not provisioned. Do NOT use this in production.
+      insecureSkipTLSVerify: true
+      {{- else if not .Values.webhook.certManager.enabled }}
+      # cert-manager is disabled; set caBundle to the base64-encoded CA cert,
+      # or apply config/tls/certificate.yaml with a cert-manager ClusterIssuer.
       caBundle: ""
       {{- end }}
-    # Only validate workloads in namespaces that opt-in via this label.
-    # Keeps the webhook from interfering with kube-system and other system namespaces.
+    # Exclude system namespaces and the operator's own namespace from validation.
     namespaceSelector:
       matchExpressions:
         - key: kubernetes.io/metadata.name
